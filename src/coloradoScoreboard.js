@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /*
  * MIT License
  * 
@@ -34,19 +33,20 @@
 
 'use strict';
 
+// {{{ REQUIRED EXTERNAL LIBRARIES
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var fs = require('fs');
 var path = require('path');
 var SerialPort = require('serialport');
 var http  = require('http');
 var sprintf = require('sprintf-js').sprintf;
 
-var isVerbose = false;
-var dumpChannels = true;
-var inputFileOffset = 0;
-
-const DEFAULT_UART = "/dev/ttyUSB0";
-const DEFAULT_UPDATE_MSEC = 1000;
-const DEFAULT_HTTP_PORT = 8080;
+// }}}
+// {{{ CONSTANTS
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const DEFAULT_UART = "/dev/ttyUSB0";    // The default UART port to use
+const DEFAULT_UPDATE_MSEC = 1000;       // Default refresh time
+const DEFAULT_HTTP_PORT = 8080;         // Default HTTP listen port
 
 const BLANK_CHAR = "&nbsp;";            // HTML doesn't render space as we expect...
 const SPACE_ASCII = 0x20;
@@ -56,6 +56,13 @@ const CONSOLE_HOME  = ESCAPE_ASCII + "[0;0H";
 const BLANK_EVENTHEAT = BLANK_CHAR + BLANK_CHAR + BLANK_CHAR;   // 3 blank chars
 const BLANK_TIME = BLANK_CHAR + BLANK_CHAR + ":" + BLANK_CHAR + BLANK_CHAR + "." + BLANK_CHAR + BLANK_CHAR;
 const BLANK_CLOCK = '00:00:00' + BLANK_CHAR + "AM";
+
+// }}}
+// {{{ GLOBALS
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+var isVerbose = false;
+var dumpChannels = true;
+var inputFileOffset = 0;
 
 /* This is the Javascript object that is sent to each client.
  * Those are the inital values.
@@ -91,30 +98,10 @@ var theScoreboard = {
 // An image map of each channel. theDisplay[x] is a channel and contains ASCII chars. 0=blank
 var theDisplay = [];
 // Note: Array(8) will create an array with 8 empty items, fill(x) will fill all the items with <x>
-for (let i=0; i < 0x20; ++i) { theDisplay.push(Array(8).fill(SPACE_ASCII)); }
-
-// {{{ usage
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-function usage() {
-    console.log("coloradoScoreboard - Colorado Timing Systems Scoreboard");
-    console.log("https://github.com/fabriziobertocci/coloradoScoreboard");
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log("");
-    console.log("Usage: coloradoScoreboard.js [options]");
-    console.log("Options are:");
-    console.log("-h                  help - show this page");
-    console.log("-v, --verbose       verbose");
-    console.log("-q, --quiet         do not dump channels at each publication");
-    console.log("-t, --test          test scoreboard (ignore all other args)");
-    console.log("-d, --dev <dev>     UART device [default=%s]", DEFAULT_UART);
-    console.log("-i, --in <file>     INPUT CTS data from <file> (will disable --dev)"); 
-    console.log("--ioffset <file>    Offset from input file (requires --in)"); 
-    console.log("-o, --out <file>    OUTPUT CTS data to <file>"); 
-    console.log("-u, --update <msec> Update client rate in mSec [default=%d]", DEFAULT_UPDATE_MSEC); 
-    console.log("-p, --port <num>    HTTP server listen port [default=%d]", DEFAULT_HTTP_PORT); 
-}
+for (let i=0; i < 32; ++i) { theDisplay.push(Array(8).fill(SPACE_ASCII)); }
 
 // }}}
+
 // {{{ getCurrTime
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Returns the current clock formatted for the curr_time variable
@@ -167,7 +154,6 @@ function testScoreboard(io) {
         });
         if (++tt == 10) tt = 0;
     }, 1000);
-
 }
 
 // }}}
@@ -224,7 +210,8 @@ function processByte(byteIn) {
 // }}}
 // {{{ updateScoreboard
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Translate 'theDisplay' into the 'theScoreboard' and push it to the clients
+// Maps the data from 'theDisplay' into the 'theScoreboard' and push it to the 
+// clients
 function updateScoreboard(io) {
     function getChar(chan, offset) {
         let ch = theDisplay[chan][offset];
@@ -278,9 +265,6 @@ function updateScoreboard(io) {
         theScoreboard.run_time = getChar(0, 2) + getChar(0, 3) + ":" + getChar(0, 4) + getChar(0, 5) + '.' + getChar(0, 6);
     }
 
-    // console.log("-----------------------------");
-    // console.log(JSON.stringify(theScoreboard));
-    // console.log(JSON.stringify(theDisplay));
     if (dumpChannels) {
         process.stdout.write(CONSOLE_CLEAR + CONSOLE_HOME);
         for (let i=0; i < theDisplay.length; ++i) {
@@ -295,14 +279,34 @@ function updateScoreboard(io) {
 }
 
 // }}}
+// {{{ usage
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+function usage() {
+    console.log("coloradoScoreboard - Colorado Timing Systems Scoreboard");
+    console.log("https://github.com/fabriziobertocci/coloradoScoreboard");
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log("");
+    console.log("Usage: coloradoScoreboard.js [options]");
+    console.log("Options are:");
+    console.log("-h                  help - show this page");
+    console.log("-v, --verbose       verbose");
+    console.log("-q, --quiet         do not dump channels at each publication");
+    console.log("-t, --test          test scoreboard (ignore all other args)");
+    console.log("-d, --dev <dev>     UART device [default=%s]", DEFAULT_UART);
+    console.log("-i, --in <file>     INPUT CTS data from <file> (will disable --dev)"); 
+    console.log("--ioffset <file>    Offset from input file (requires --in)"); 
+    console.log("-o, --out <file>    OUTPUT CTS data to <file>"); 
+    console.log("-u, --update <msec> Update client rate in mSec [default=%d]", DEFAULT_UPDATE_MSEC); 
+    console.log("-p, --port <num>    HTTP server listen port [default=%d]", DEFAULT_HTTP_PORT); 
+}
 
+// }}}
 // {{{ main
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // argv[0] = 'node'
 // argv[1] = <full path to this script>
 // argv[2] = <firstArgument>
 // argv[3] = <secondArgument>
-
 function main() {
     var ttyDevice = DEFAULT_UART;
     var updateMsec = DEFAULT_UPDATE_MSEC;
@@ -491,3 +495,6 @@ function main() {
 }
 
 main();
+
+// }}}
+

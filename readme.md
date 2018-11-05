@@ -14,7 +14,7 @@ The following projects provided invaluable help to this work:
 - [Marco](https://marcoscorner.walther-family.org/2015/07/colorado-timing-console-scoreboard-protocol/)
 
 
-
+-----
 ## Hardware
 To get the CTS serial stream, you need:
 
@@ -45,6 +45,7 @@ TODO
 
 
 
+----
 ## Application
 
 ### Dependencies
@@ -183,5 +184,51 @@ The page is composed by the file [src/static/index.html](https://github.com/fabr
 This file is essentially a variation to the index.html from the [CTS_Scoreboard](https://github.com/STU940652/CTS_Scoreboard)
 project.
 
+
+--------
+## Description of the application
+After parsing the command-line parameters, the application opens the serial port
+and install a data listener callback function. The callback usually receives a
+Uint8Array object containing more than a single byte (since the lower serial IO
+library performs some buffering).
+
+The data received is then unwrapped and processed byte-by-byte.
+
+Alternatively if the application is invoked with the --in command-line argument,
+it reads the data from a binary file and process it approximately at the same
+speed as a normal UART receiving data at 9600bps (read one byte every 1 mSec).
+
+In either case (input from UART or from a file), each received byte is processed
+by the function `processByte`. 
+
+The `processByte` simply decodes byte by byte and populate the channel display 
+table `theDisplay` (global array of 32x8 characters).
+
+Asynchronously to this decoding process, there is a periodic task invoked every
+second (configurable through the `--update` parameter) that takes the characters
+from the `theDisplay` rows and place them in the Javascript object `theScoreboard`
+containing the data sent to the HTML page.
+
+For example, the `theScoreboard.lane_place1` contains the position of the 
+athlete on lane 1 and is taken from the display character at `theDisplay[1][1]`
+
+### Testing the scoreboard
+The application have a simple test scoreboard functionality you can invoke
+with the `-t` option. If selected, all the other options will be ignored.
+
+The test option simply sends some display data over the HTML page until you 
+interrupt the process with CTRL+C.
+
+
+### Testing with real data
+To test the app, a sample data is included, recorded during a local swim meet
+by running the app with the `--out` argument.
+
+The file `samples/meet.bin` have the data of a race (young kids, 25 yard breathstoke).
+
+* Race starts at around offset 2500
+* First athlete completes the race at around offset 26000 (time=27.22)
+* Second athlete arrives at around offset 29600 (time=30.69)
+* Race completes shortly after the last athlete arrives (lane 1) at around 56000
 
 
