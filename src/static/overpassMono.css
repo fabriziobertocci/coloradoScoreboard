@@ -1,0 +1,6 @@
+@font-face {
+  font-family: 'Overpass Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Overpass Mono Regular'), local('OverpassMono-Regular'), url('OverpassMonoFont.ttf') format('truetype');
+}

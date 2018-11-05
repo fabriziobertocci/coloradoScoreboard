@@ -1,0 +1,252 @@
+<html>
+<link href="overpassMono.css" rel="stylesheet">
+<style>
+
+.content{
+    #color: #FFFFFF;
+    #font-size: 26px;
+    #font-weight: bold;
+    #text-shadow: -1px -1px 1px #000, 1px 1px 1px #000;
+    width:  600;
+    height: 800;
+    position: relative;
+    z-index: 100;
+}
+
+.content2{
+    width: 550px;
+    # position: relative;
+    margin-left: 20px;
+    position: relative;
+    top: 470;
+}
+
+.content_update_time{
+    font-family: 'Overpass Mono', monospace;
+    font-size: 20px;
+    color: #000000;
+    background-color: #daebe8;
+    padding-left: 20px;
+    padding-top: 5px;
+}
+
+.content3{
+    width: 550px;
+    # position: relative;
+    margin-left: 20px;
+    position: relative;
+    top: 470;
+}
+
+.content_meet_title{
+    font-family: 'Overpass Mono', monospace;
+    font-size: 20px;
+    color: #000000;
+    background-color: #87bdd8;
+    padding-top: 5px;
+    padding-left: 20px;
+}
+
+.content_meet_date{
+    font-family: 'Overpass Mono', monospace;
+    font-size: 26px;
+    color: #000000;
+    background-color: #daebe8;
+    padding-left: 10px;
+}
+
+.content_event_number{
+    font-family: 'Overpass Mono', monospace;
+    font-size: 32px;
+    color: #000000;
+    background-color: #9d238f;
+    width: 370px;
+    float: left;
+    padding-left: 30px;
+}
+
+.content_heat_number{
+    font-family: 'Overpass Mono', monospace;
+    font-size: 32px;
+    color: #000000;
+    background-color: #9d238f;
+    width: 400px;
+    float: left;
+}
+
+.scoreboard{
+    font-family: 'Overpass Mono', monospace;
+    font-size: 32px;
+    width: 550px;
+    color: #000000;
+    position: absolute;
+    top: 20;
+    left: 20;
+}
+
+.scoreboard_title{
+    font-family: 'Overpass Mono', monospace;
+    color: #000000;
+    font-size: 32px;
+    background-color: #87bdd8;
+    width: 100%;
+    text-align: center;
+}
+
+.scoreboard_header{
+    font-family: 'Overpass Mono', monospace;
+    color: #000000;
+    font-size: 32px;
+    background-color: #daebe8;
+}
+
+.scoreboard_row_odd{
+    font-family: 'Overpass Mono', monospace;
+    color: #000000;
+    font-size: 32px;
+    background-color: #b7d7e8;
+}
+
+.scoreboard_row_eve{
+    font-family: 'Overpass Mono', monospace;
+    color: #000000;
+    font-size: 32px;
+    background-color: #cfe0e8;
+}
+
+.scoreboard_time{
+    font-family: 'Overpass Mono', monospace;
+    color: #000000;
+    font-size: 32px;
+    background-color: #87bdd8;
+    width: 100%;
+    text-align: center;
+}
+
+
+.background{
+    background-color: #999999;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 700;
+    height: 600;
+    z-index: -100;
+}
+</style>
+
+
+<script>
+var scoreboard_updated = true;
+
+function on_timer(){
+    /*
+    var months = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"};
+
+    // Update current time
+    var d = new Date();
+    var hoursAmPm = (d.getHours() % 12);
+    hoursAmPm = (hoursAmPm != 0) ? hoursAmPm : 12;
+    document.getElementById("meet_datetime").innerHTML = months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " " + hoursAmPm + ":" + ("0" + d.getMinutes()).slice(-2);
+*/
+    
+    if (!scoreboard_updated) {
+        document.getElementById("scoreboard").style.display = "none";
+        document.getElementById("sys_time").innerHTML = "<i>System is offline</i>";
+    }
+    scoreboard_updated = false;
+}
+
+function init() {
+    on_timer();
+    window.setInterval(on_timer, 5000);
+}
+
+</script>
+
+<body style="margin:0px" onload="init();">
+<div class="content"> 
+    <div class="scoreboard" id="scoreboard" style="display:none;">
+        <div class="scoreboard_title">Event: <span id="current_event"></span>    Heat: <span id="current_heat"></span></div>
+        <table width="100%" style="border-spacing:0;">
+            <tr class="scoreboard_header"> <td align="center">Lane</td><td align="center">Place</td><td align="center">Time</td></tr>
+            <tr class="scoreboard_row_odd"><td id="lane_number1" align="center"></td><td id="lane_place1" align="center"></td><td align="right"><span id="lane_time1"></span>&nbsp;</td></tr>
+            <tr class="scoreboard_row_eve"><td id="lane_number2" align="center"></td><td id="lane_place2" align="center"></td><td align="right"><span id="lane_time2"></span>&nbsp;</td></tr>
+            <tr class="scoreboard_row_odd"><td id="lane_number3" align="center"></td><td id="lane_place3" align="center"></td><td align="right"><span id="lane_time3"></span>&nbsp;</td></tr>
+            <tr class="scoreboard_row_eve"><td id="lane_number4" align="center"></td><td id="lane_place4" align="center"></td><td align="right"><span id="lane_time4"></span>&nbsp;</td></tr>
+            <tr class="scoreboard_row_odd"><td id="lane_number5" align="center"></td><td id="lane_place5" align="center"></td><td align="right"><span id="lane_time5"></span>&nbsp;</td></tr>
+            <tr class="scoreboard_row_eve"><td id="lane_number6" align="center"></td><td id="lane_place6" align="center"></td><td align="right"><span id="lane_time6"></span>&nbsp;</td></tr>
+            <tr class="scoreboard_time"><td colspan='3' id="run_time" align="center">Time: &nbsp;&nbsp;:&nbsp;&nbsp;</td></tr>
+        </table>
+    </div>
+    <div class="content3">
+        <div class="content_meet_title">Mini Monster Meet</div>
+        <div class="content_meet_date"><span id="meet_datetime"></span></div>
+    </div>
+    <div class="content2">
+        <div class="content_update_time"><span id="current_time"></span></div><br/>
+        <div class="content_update_time"><span id="sys_time"></span></div><br/>
+    </div>
+ </div>
+
+<div class="background">
+    <img src="pool.jpg" width="100%"/>
+</div>
+
+</body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+/*
+    socket.on('connect', function() {
+        socket.emit('start_scoreboard', {data: 'I\'m connected!'});
+    });
+*/
+    
+    socket.on('update_scoreboard', (s) => {
+        scoreboard_updated = true;
+        /*
+        var valid_fields = [
+            "content_meet_title",
+            "current_event",
+            "current_heat",
+            "lane_number1",
+            "lane_number2",
+            "lane_number3",
+            "lane_number4",
+            "lane_number5",
+            "lane_number6",
+            "lane_place1",
+            "lane_place2",
+            "lane_place3",
+            "lane_place4",
+            "lane_place5",
+            "lane_place6",
+            "lane_time1",
+            "lane_time2",
+            "lane_time3",
+            "lane_time4",
+            "lane_time5",
+            "lane_time6",
+        ];
+        
+        var message_keys = Object.keys(s);
+        
+        message_keys.forEach( function(k) {
+            if (valid_fields.indexOf(k) > 0) {
+                document.getElementById(k).innerHTML = s[k];
+            }
+        })
+        */
+        for (var k in s) {
+            var domElem = document.getElementById(k);
+            if (domElem) domElem.innerHTML = s[k];
+        }
+        document.getElementById("scoreboard").style.display = "block";
+
+    });
+    
+</script>
+
+</html>
