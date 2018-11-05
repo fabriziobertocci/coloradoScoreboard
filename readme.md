@@ -144,4 +144,8 @@ Refer to the [Colorado Scoreboard Config](https://drive.google.com/file/d/0BzTyI
 document for more info about the scoreboard channels.
 
 
+### Webapp Output
+The generated webapp produces a single, static page as follow:
+
+![alt text](https://github.com/fabriziobertocci/coloradoScoreboard/raw/master/docs/webScreenshot.png Screenshot)
 
