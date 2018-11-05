@@ -147,5 +147,41 @@ document for more info about the scoreboard channels.
 ### Webapp Output
 The generated webapp produces a single, static page as follow:
 
-![alt text](https://github.com/fabriziobertocci/coloradoScoreboard/raw/master/docs/webScreenshot.png Screenshot)
+![](https://github.com/fabriziobertocci/coloradoScoreboard/raw/master/docs/webScreenshot.png)
+
+The current screenshots contains the following scoreboard channels:
+
+1. Channel #0x0c: Event/Heat
+
+2. Static Lane/Place/Time header
+
+3. Channel #0x01: Lane 1 results
+
+4. Channel #0x02: Lane 2 results
+
+5. Channel #0x03: Lane 3 results
+
+6. Channel #0x04: Lane 4 results
+
+7. Channel #0x05: Lane 5 results
+
+8. Channel #0x06: Lane 6 results
+
+9. Channel #0x00: Race run time
+
+Followed by three more rows:
+
+1. Event name (set either from the html page or pushed from the server)
+
+2. Console time: the clock as obtained from channel #0x16
+
+3. System time: the clock of the host running the coloradoScoreboard.js application 
+   (this can be used to see when the page was updated, but it might differ from
+   the clock from the console, so it might be a bit confusing).
+
+The page is composed by the file [src/static/index.html](https://github.com/fabriziobertocci/coloradoScoreboard/blob/master/src/static/index.html).
+This file is essentially a variation to the index.html from the [CTS_Scoreboard](https://github.com/STU940652/CTS_Scoreboard)
+project.
+
+
 
