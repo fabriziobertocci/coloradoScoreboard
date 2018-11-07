@@ -38,7 +38,13 @@ The CTS transmit using two methods:
 
 - FAST: bps=9600, 8 bits, **EVEN parity**, 1 stop bit
 
-- SLOW: bps=????, 8 bits, **EVEN parity**, 1 stop bit
+- SLOW: bps=2400, 8 bits, **EVEN parity**, 1 stop bit
+
+Speed can be configured in the console through the settings (Setup -> Scoreboard 
+-> High Speed)
+
+
+
 
 TODO
 
@@ -231,4 +237,12 @@ The file `samples/meet.bin` have the data of a race (young kids, 25 yard breaths
 * Second athlete arrives at around offset 29600 (time=30.69)
 * Race completes shortly after the last athlete arrives (lane 1) at around 56000
 
+
+Other samples available in the `samples` directory:
+
+* `samples/blank.bin`: few seconds of data received when the console is set
+  to have the scoreboard in BLANK mode (Scoreboard -> SCOREBOARD BLANK)
+
+* `samples/totalBlank.bin`: few seconds of data received when the console is
+  set to have the scoreboard in TOTAL BLANK mode (Scoreboard -> SCOREBOARD BLANK x2)
 
