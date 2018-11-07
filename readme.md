@@ -22,7 +22,7 @@ To get the CTS serial stream, you need:
 
 2) A mono 1/4" male to two female Y cable, e.g.:
    [Hosa YPP-111 1/4 inch TS to Dual 1/4 inch TSF Y Cable](https://www.amazon.com/dp/B000068O53?ref=yo_pop_ma_swf)
-   (this one was recommended by [CTS_Scoreboard](https://github.com/STU940652/CTS_Scoreboard. It's cheap and does a perfect job.
+   (this one was recommended by [CTS_Scoreboard](https://github.com/STU940652/CTS_Scoreboard)). It's cheap and does a perfect job.
 
 3) A male DB-9 connector. Plenty of choices here. I had a DB9 connector laying around I managed to reuse.
 
