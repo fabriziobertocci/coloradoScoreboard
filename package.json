@@ -9,7 +9,7 @@
   "dependencies": {
     "serialport": "^7",
     "sprintf-js": "*",
-    "socket.io": "2.1.1"
+    "socket.io": "2.4.0"
   },
   "repository": {
     "type": "git",
