@@ -9,11 +9,11 @@
   "dependencies": {
     "serialport": "^7",
     "sprintf-js": "*",
-    "socket.io": "*"
+    "socket.io": "2.1.1"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/fabriziobertocci/coloradoScoreboard"
+    "type": "git",
+    "url": "https://github.com/fabriziobertocci/coloradoScoreboard"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
