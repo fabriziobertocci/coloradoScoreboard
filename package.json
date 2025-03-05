@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "serialport": "*",
-    "socket.io": "^4.7.5",
+    "socket.io": "^4.8.1",
     "sprintf-js": "*"
   },
   "repository": {
