@@ -43,11 +43,11 @@ Speed can be configured in the console through the settings (Setup -> Scoreboard
 
 ## Gen7/WA-2 serial stream
 The data stream from a Gen7 Serial timer console via RS-485 is much different than the previous CTS RS-232 data streams from previous generation CTS timers.  The addition of this support was done rather hastily, so not all the command line features available for classic CTS function are supported in Gen7 mode.  It just runs and outputs to the scoreboard web page.
-## Hardware
+### Hardware
 You can create your own RS-485 to USB serial cable using the following parts:
 1) CONXALL/SWITCHCRAFT P/N 3280-4PG-315  Male plug end  https://www.switchcraft.com/multi-con-x-connectors-0-875-od/multiconx/
 2) FTDI USB-RS485-WE-1800-BT  USB to RS-485 converter  https://ftdichip.com/products/usb-rs485-we-1800-bt/
-## Pinout 
+### Pinout 
 Wiring for the CTS Gen7 RS-485 socket to the FTDI USB-RS485-WE-1800-BT is as follows, unreferenced wires are trimmed and not used
         FTDI Wires     |   Female Plug Pins
         BLACK (GND)    ->  Pin 4
@@ -56,6 +56,7 @@ Wiring for the CTS Gen7 RS-485 socket to the FTDI USB-RS485-WE-1800-BT is as fol
        
 Below is a ascii drawing of the CTS Gen7 female RS-485 socket pinout as viewed from the back of the timer console, you will be wiring the Male Plug to the correpsonding pins of the FEMALE socket when the male plug is properly keyed and latched into the socket.
  
+```
    TOP OF PLUG   v is the orientation notch
      .---v---.
    /           \
@@ -64,7 +65,7 @@ Below is a ascii drawing of the CTS Gen7 female RS-485 socket pinout as viewed f
  |    o 2   o 3  |
    \           /
      '-------'
- 
+``` 
 ----
 ## Application
 
