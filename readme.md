@@ -49,11 +49,12 @@ You can create your own RS-485 to USB serial cable using the following parts:
 2) FTDI USB-RS485-WE-1800-BT  USB to RS-485 converter  https://ftdichip.com/products/usb-rs485-we-1800-bt/
 ### Pinout 
 Wiring for the CTS Gen7 RS-485 socket to the FTDI USB-RS485-WE-1800-BT is as follows, unreferenced wires are trimmed and not used
+```
         FTDI Wires     |   Female Plug Pins
         BLACK (GND)    ->  Pin 4
         Yellow (Data-) ->  Pin 3
         Orange (Data+) ->  Pin 2
-       
+```
 Below is a ascii drawing of the CTS Gen7 female RS-485 socket pinout as viewed from the back of the timer console, you will be wiring the Male Plug to the correpsonding pins of the FEMALE socket when the male plug is properly keyed and latched into the socket.
  
 ```
