@@ -1,6 +1,6 @@
 # coloradoScoreboard
 Read, decodes and format a web page from the Colorado Timing Console using the protocol
-for the scoreboard
+for the scoreboard.  Supports legacy CTS protocol (Gen7 Legacy, Gen6 and earlier) or Gen7/WA-2 protocol (Gen7 Serial).
 
 A simple node.js-based application that reads the serial data being sent from a Colorado Timing Console to the scoreboard. 
 The app reads the data, decodes it and produces a web page that simulates a real scoreboard.
@@ -16,7 +16,7 @@ The following projects provided invaluable help to this work:
 
 -----
 ## Hardware
-To get the CTS serial stream, you need:
+To get the CTS serial stream, see as follows.  To get the Gen7/WA-2 serial stream see that section further below.
 
 1) An RS-232 port, e.g. a USB to RS-232 cable. Any converter is fine (or if you have a board with a RS232, even better)
 
@@ -25,13 +25,11 @@ To get the CTS serial stream, you need:
    (this one was recommended by [CTS_Scoreboard](https://github.com/STU940652/CTS_Scoreboard)). It's cheap and does a perfect job.
 
 3) A male DB-9 connector. Plenty of choices here. I had a DB9 connector laying around I managed to reuse.
-
    
 ### Pinout
 The Mono audio cable has two wires:
 - The (-) ground (larger part of the connector) is the ground of the DB9 and need to be connected to GND pin (5) of DB9
 - The (+) signal (the tip of the connector) is the TX line of the Colorado console, and need to be connected to the RX pin (2) of DB9
-
 
 ## Protocol
 The CTS transmit using two methods:
@@ -43,14 +41,30 @@ The CTS transmit using two methods:
 Speed can be configured in the console through the settings (Setup -> Scoreboard 
 -> High Speed)
 
-
-
-
-TODO
-
-
-
-
+## Gen7/WA-2 serial stream
+The data stream from a Gen7 Serial timer console via RS-485 is much different than the previous CTS RS-232 data streams from previous generation CTS timers.  The addition of this support was done rather hastily, so not all the command line features available for classic CTS function are supported in Gen7 mode.  It just runs and outputs to the scoreboard web page.
+## Hardware
+You can create your own RS-485 to USB serial cable using the following parts:
+1) CONXALL/SWITCHCRAFT P/N 3280-4PG-315  Male plug end  https://www.switchcraft.com/multi-con-x-connectors-0-875-od/multiconx/
+2) FTDI USB-RS485-WE-1800-BT  USB to RS-485 converter  https://ftdichip.com/products/usb-rs485-we-1800-bt/
+## Pinout 
+Wiring for the CTS Gen7 RS-485 socket to the FTDI USB-RS485-WE-1800-BT is as follows, unreferenced wires are trimmed and not used
+        FTDI Wires     |   Female Plug Pins
+        BLACK (GND)    ->  Pin 4
+        Yellow (Data-) ->  Pin 3
+        Orange (Data+) ->  Pin 2
+       
+Below is a ascii drawing of the CTS Gen7 female RS-485 socket pinout as viewed from the back of the timer console, you will be wiring the Male Plug to the correpsonding pins of the FEMALE socket when the male plug is properly keyed and latched into the socket.
+ 
+   TOP OF PLUG   v is the orientation notch
+     .---v---.
+   /           \
+ |    o 1   o 4  |
+<                 >
+ |    o 2   o 3  |
+   \           /
+     '-------'
+ 
 ----
 ## Application
 
@@ -84,6 +98,7 @@ Options are:
 -o, --out <file>    OUTPUT CTS data to <file>
 -u, --update <msec> Update client rate in mSec [default=1000]
 -p, --port <num>    HTTP server listen port [default=8080]
+-7, --gen7          use Gen7 scoreboard protocol (default is CTS async)
 ```
 
 - You can either specify a UART device where to read the data from (`-d`) or a file (`-i`)
@@ -99,6 +114,7 @@ To avoid this functionality use the `-q` (`--quiet`) command-line option.
 - If you instead prefer to see some more verbose messages on the console (like what is the app doing),
   use the `-v` (`--verbose`) argument.
 
+- When Gen7 param is supplied, not all the command line features available for classic CTS function are supported in this mode.  It just runs and outputs to the scoreboard web page.
 
 ### Console Output
 When you run without the `-q` option, your console will show all the scoreboard channels published by the console.
