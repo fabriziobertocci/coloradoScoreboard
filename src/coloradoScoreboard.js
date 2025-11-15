@@ -37,7 +37,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var fs = require('fs');
 var path = require('path');
-var SerialPort = require('serialport');
+var { SerialPort } = require('serialport');
 var http  = require('http');
 var sprintf = require('sprintf-js').sprintf;
 
@@ -62,6 +62,7 @@ const BLANK_CLOCK = '00:00:00' + BLANK_CHAR + "AM";
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 var isVerbose = false;
 var dumpChannels = true;
+var doGen7 = false;
 var inputFileOffset = 0;
 
 /* This is the Javascript object that is sent to each client.
@@ -278,6 +279,84 @@ function updateScoreboard(io) {
     io.sockets.emit('update_scoreboard', theScoreboard);
 }
 
+function getSwimmerName(scbd, lanenum){
+        lanenum += -1;
+        let swmevt = null;
+      const meet = (scbd.Gen7SwimmingData && scbd.Gen7SwimmingData.length > 0) ? scbd.Gen7SwimmingData[0] : null;
+      if (meet && meet.HasGen7Data && scbd.CurrentEventNumber && scbd.CurrentEventNumber.length > 0) {
+        const evt = scbd.CurrentEventNumber[0];
+        if (evt > 0 && meet.Events && meet.Events.has(evt)) swmevt = meet.Events.get(evt);
+      }
+      let swmheat = null;
+      if (swmevt && scbd.CurrentHeatNumber && scbd.CurrentHeatNumber.length > 0) {
+        const heat = scbd.CurrentHeatNumber[0];
+        if (heat > 0 && swmevt.Heats && swmevt.Heats.has(heat)) swmheat = swmevt.Heats.get(heat);
+      }
+
+    let out = '';
+    for (let indexdata = 0; indexdata <= scbd.scbd[0].BoardData[lanenum].ModuleData.length - 1; ++indexdata) {
+        out += scbd.DataToChar(scbd.scbd[0].BoardData[lanenum].ModuleData[indexdata].Value, false);
+    }
+    let lane = null;
+    lane = swmheat && lane < swmheat.length ? swmheat[lanenum] : null;
+    const swimmerName = lane && (((lane.LastName || '').length + (lane.FirstName || '').length) > 0)
+        ? `${lane.FirstName} ${lane.LastName} (${lane.Team})`
+        : '';
+
+        return swimmerName;
+
+}
+
+// }}}
+// {{{ updateScoreboardGen7
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Maps the data from 'theDisplay' into the 'theScoreboard' and push it to the 
+// clients.
+// Due to the different data structure of Gen7Scoreboard, a different function is utilized
+function updateScoreboardGen7(scbd, io) {
+    theScoreboard.meet_title = scbd.Gen7SwimmingData[0].MeetTitle
+    theScoreboard.current_event = scbd.CurrentEventNumber[0];
+    theScoreboard.current_heat  = scbd.CurrentHeatNumber[0];
+
+    theScoreboard.lane_number1 = "1";
+    theScoreboard.lane_number2 = "2";
+    theScoreboard.lane_number3 = "3";
+    theScoreboard.lane_number4 = "4";
+    theScoreboard.lane_number5 = "5";
+    theScoreboard.lane_number6 = "6";
+
+    theScoreboard.lane_place1  = scbd.GetDigit(0,1,3);
+    theScoreboard.lane_place2  = scbd.GetDigit(0,2,3);
+    theScoreboard.lane_place3  = scbd.GetDigit(0,3,3);
+    theScoreboard.lane_place4  = scbd.GetDigit(0,4,3);
+    theScoreboard.lane_place5  = scbd.GetDigit(0,5,3);
+    theScoreboard.lane_place6  = scbd.GetDigit(0,6,3);
+
+    // the fourth parameter of the GetTime function is the number of time data digits to read and beyond six you will get split times included in the return string
+    theScoreboard.lane_time1   = scbd.GetTime(0, 1, 4, 6, true);
+    theScoreboard.lane_time2   = scbd.GetTime(0, 2, 4, 6, true);
+    theScoreboard.lane_time3   = scbd.GetTime(0, 3, 4, 6, true);
+    theScoreboard.lane_time4   = scbd.GetTime(0, 4, 4, 6, true);
+    theScoreboard.lane_time5   = scbd.GetTime(0, 5, 4, 6, true);
+    theScoreboard.lane_time6   = scbd.GetTime(0, 6, 4, 6, true);
+
+    /* example below on implementing Swimmer Name data from Gen7, but your HTML template needs to have fields for the outputs
+    theScoreboard.lane_name1   = getSwimmerName(scbd, 1);
+    theScoreboard.lane_name2   = getSwimmerName(scbd, 2);
+    theScoreboard.lane_name3   = getSwimmerName(scbd, 3);
+    theScoreboard.lane_name4   = getSwimmerName(scbd, 4);
+    theScoreboard.lane_name5   = getSwimmerName(scbd, 5);
+    theScoreboard.lane_name6   = getSwimmerName(scbd, 6);
+    */
+
+    theScoreboard.sys_time    = "System Time: " + getCurrTime();
+    //theScoreboard.current_time = "Console Time: " + getChar(0x16, 2) + getChar(0x16, 3) + ":" + getChar(0x16, 4) + getChar(0x16, 5);
+
+    theScoreboard.run_time = scbd.GetTime(0, 0, 4, 30, true);
+
+    io.sockets.emit('update_scoreboard', theScoreboard);
+}
+
 // }}}
 // {{{ usage
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -298,6 +377,7 @@ function usage() {
     console.log("-o, --out <file>    OUTPUT CTS data to <file>"); 
     console.log("-u, --update <msec> Update client rate in mSec [default=%d]", DEFAULT_UPDATE_MSEC); 
     console.log("-p, --port <num>    HTTP server listen port [default=%d]", DEFAULT_HTTP_PORT); 
+    console.log("-7, --gen7          use Gen7 scoreboard protocol (default is CTS async)");
 }
 
 // }}}
@@ -319,6 +399,10 @@ function main() {
     var argTestScoreboard = false;
 
     for (let i = 2; i < process.argv.length; ++i) {
+        if ((process.argv[i] == "-7") || (process.argv[i] == "--gen7")) {
+            doGen7 = true;
+            continue;
+        }
         if ((process.argv[i] == "-q") || (process.argv[i] == "--quiet")) {
             dumpChannels = false;
             continue;
@@ -419,78 +503,93 @@ function main() {
     }).listen(httpPort);
     console.log('HTTP Server running at http://127.0.0.1:%d/', httpPort);
 
-    if (outFileName) {
-        if (isVerbose) console.log("Dumping CTS data to file: %s", outFileName);
-        fs.open(outFileName, "w", (err, fd) => {
-            if (err) {
-                console.log("Error opening outFile '%s' for write: %s", outFileName, err);
-                process.exit(-1);
-            }
-            outFD = fd;
-        });
-    }
+    var io = require('socket.io')(server);
 
-    var io = require('socket.io').listen(server);
+    if (doGen7) {
+        // Using Gen7 protocol, so just branched to a minimal implementation 
+        // Can likely do this cleaner and support all the other param options for Gen7 too, but not implemented yet
+        // Load the Gen7 module
+        const Gen7 = require('./ctsScoreboardasync');
+        const scbd = new Gen7.Gen7Scbd(ttyDevice);
 
-    if (argTestScoreboard) {
-        testScoreboard(io);
-        return;
-    }
-
-    if (inFileName) {
-        if (isVerbose) console.log("Reading CTS Scoreboard data from file: " + inFileName);
-        inFD = fs.openSync(inFileName, "r");
-        if (!inFD) {
-            console.log("Error opening input file '%s' for read: %s", outFileName, err);
-            process.exit(-1);
-        }
-        if (inputFileOffset > 0 && isVerbose) console.log("Starting reading input file from offset: " + inputFileOffset);
-
+        // Update the UI every interval
+        setInterval(()=> {
+            // call the function to update the scoreboard for gen7
+            updateScoreboardGen7(scbd, io);
+        }, updateMsec);
     } else {
-        if (isVerbose) console.log("Opening port: %s", ttyDevice);
-        devFD = new SerialPort(ttyDevice, {
-            baudRate: 9600,
-            parity: "even"
-        });
-    }
-
-    // Update the UI every second
-    setInterval(()=> {
-        updateScoreboard(io);
-    }, updateMsec);
-
-    var dataIn = false;
-    if (inFD) {
-        setInterval( () => {
-            var data = new Uint8Array(1);
-            if (fs.readSync(inFD, data, 0, 1, inputFileOffset) != 1) {
-                console.log("Input data read error");
-                process.exit(-1);
-            }
-
-            processByte(data[0]);
-            ++inputFileOffset;
-        }, 1);      // @9600 we receive approx 1 byte per millisecond
-
-    } else if (devFD) {
-        devFD.on('data', (data) => {
-            if (isVerbose) {
-                if (dataIn) {
-                    console.log("Receiving data from CTS:")
-                    dataIn = true;
-                }
-                process.stdout.write("*");
-            }
-            if (outFD) fs.write(outFD, data, (err, bytesWritten, buffer) => {
+        // Using CTS protocol
+        if (outFileName) {
+            if (isVerbose) console.log("Dumping CTS data to file: %s", outFileName);
+            fs.open(outFileName, "w", (err, fd) => {
                 if (err) {
-                    console.log("Erorr writing to out file '%s': %s", outFileName, err);
+                    console.log("Error opening outFile '%s' for write: %s", outFileName, err);
                     process.exit(-1);
                 }
+                outFD = fd;
             });
-            for (let i = 0; i < data.length; ++i) {
-                processByte(data[i]);
+        }
+
+        if (argTestScoreboard) {
+            testScoreboard(io);
+            return;
+        }
+
+        if (inFileName) {
+            if (isVerbose) console.log("Reading CTS Scoreboard data from file: " + inFileName);
+            inFD = fs.openSync(inFileName, "r");
+            if (!inFD) {
+                console.log("Error opening input file '%s' for read: %s", outFileName, err);
+                process.exit(-1);
             }
-        });
+            if (inputFileOffset > 0 && isVerbose) console.log("Starting reading input file from offset: " + inputFileOffset);
+
+        } else {
+            if (isVerbose) console.log("Opening port: %s", ttyDevice);
+            devFD = new SerialPort({ path:ttyDevice,
+                baudRate: 9600,
+                parity: "even"
+            });
+        }
+
+        // Update the UI every second
+        setInterval(()=> {
+            updateScoreboard(io);
+        }, updateMsec);
+
+        var dataIn = false;
+        if (inFD) {
+            setInterval( () => {
+                var data = new Uint8Array(1);
+                if (fs.readSync(inFD, data, 0, 1, inputFileOffset) != 1) {
+                    console.log("Input data read error");
+                    process.exit(-1);
+                }
+
+                processByte(data[0]);
+                ++inputFileOffset;
+            }, 1);      // @9600 we receive approx 1 byte per millisecond
+
+        } else if (devFD) {
+            devFD.on('data', (data) => {
+                if (isVerbose) {
+                    if (dataIn) {
+                        console.log("Receiving data from CTS:")
+                        dataIn = true;
+                    }
+                    process.stdout.write("*");
+                }
+                if (outFD) fs.write(outFD, data, (err, bytesWritten, buffer) => {
+                    if (err) {
+                        console.log("Erorr writing to out file '%s': %s", outFileName, err);
+                        process.exit(-1);
+                    }
+                });
+                for (let i = 0; i < data.length; ++i) {
+                    processByte(data[i]);
+                }
+            });
+        }
     }
 }
 
